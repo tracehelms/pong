@@ -2,59 +2,45 @@ defmodule Pong.GameEngineTest do
   use ExUnit.Case, async: true
   alias Pong.GameEngine
 
-  setup do
-    {:ok, server} = GameEngine.start_link
-    {:ok, server: server}
+  test "should move a player paddle up and down" do
+    state = GameEngine.new_game_state
+
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 190}
+
+    state = put_in(state, [:left, :moving], :down)
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 200}
+
+    state = put_in(state, [:left, :moving], :up)
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 180}
+
+    state = put_in(state, [:left, :location], {20, 0})
+    state = put_in(state, [:left, :moving], :up)
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 0}
+
+    state = put_in(state, [:left, :location], {20, 370})
+    state = put_in(state, [:left, :moving], :down)
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 380}
+
+    state = put_in(state, [:left, :location], {20, 380})
+    state = put_in(state, [:left, :moving], :down)
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 380}
   end
 
-  test "starts a game", %{server: server} do
-    assert GameEngine.get_game(server, 1) == :error
-
-    {:ok, game_id} = GameEngine.create_game(server, 1)
-    assert game_id == 1
-
-    {:ok, game_state} = GameEngine.get_game(server, game_id)
-    assert game_state == %{
-      left: [0, 0],
-      right: [0, 0],
-      ball: [0, 0]
-    }
+  test "should start moving ball for new game" do
+    state = GameEngine.move_ball(GameEngine.new_game_state)
+    assert state.ball_velocity == {20, 20}
+    assert state.ball_location == {310, 230}
   end
 
-  test "should handle more than one game", %{server: server} do
-    {:ok, game_one} = GameEngine.create_game(server, 1)
-    {:ok, game_two} = GameEngine.create_game(server, 2)
+  test "should move ball on already started game" do
+    state = GameEngine.new_game_state
+    |> Map.put(:ball_velocity, {20, 20})
+    |> GameEngine.move_ball
 
-    game_state = %{
-      left: [0, 0],
-      right: [0, 0],
-      ball: [0, 0]
-    }
+    assert state.ball_location == {330, 250}
 
-    assert {:ok, game_state} == GameEngine.get_game(server, game_one)
-    assert {:ok, game_state} == GameEngine.get_game(server, game_two)
-  end
-
-  test "should delete a game", %{server: server} do
-    {:ok, game_id} = GameEngine.create_game(server, 1)
-    assert {:ok, _game_state} = GameEngine.get_game(server, game_id)
-
-    GameEngine.delete_game(server, game_id)
-
-    assert GameEngine.get_game(server, game_id) == :error
-  end
-
-  test "should move a players paddle up and down", %{server: server} do
-    {:ok, game_id} = GameEngine.create_game(server, 1)
-
-    GameEngine.move_player(server, game_id, {:left, [0, 10]})
-    {:ok, game_state} = GameEngine.get_game(server, game_id)
-
-    assert game_state == %{
-      left: [0, 10],
-      right: [0, 0],
-      ball: [0, 0]
-    }
+    state = GameEngine.move_ball(state)
+    assert state.ball_location == {350, 270}
   end
 
 end

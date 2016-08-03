@@ -1,60 +1,85 @@
 defmodule Pong.GameEngine do
-  use GenServer
 
-  def start_link do
-   GenServer.start_link(__MODULE__, :ok, [])
+  @velocity 20
+  @game_width 640
+  @game_height 480
+  @paddle_width 12
+  @paddle_height 100
+  @paddle_velocity 10
+  @paddle_distance_from_side 20
+  @ball_diameter 20
+
+  def new_game_state(score \\ {0, 0}) do
+    %{
+      score: score,
+      left: %{
+        location: {@paddle_distance_from_side, (@game_height / 2) - (@paddle_height / 2)},
+        moving: :nope
+      },
+      right: %{
+        location: {@game_width - @paddle_distance_from_side - @paddle_width, (@game_height / 2) - (@paddle_height / 2)},
+        moving: :nope
+      },
+      ball_location: {(@game_width / 2) - (@ball_diameter / 2), (@game_height / 2) - (@ball_diameter / 2)},
+      ball_velocity: {0, 0}
+    }
   end
 
-  def init(:ok) do
-    {:ok, %{}}
-  end
+  # TODO
+  #
+  # change this to receive and return a game state
+  # so basically this happens:
+  # when player presses up or down key, that gets sent to the server
+  # and we store in state whether they are moving up or down
+  # when key is releases, same thing
+  # then, as a part of the game tick, we move the paddles up or down
+  # based on what direction we have stored in state
+  #
+  def move_paddle(state, player_side) do
+    direction = Map.get(state, player_side).moving
+    {x, y} = Map.get(state, player_side).location
 
-  def create_game(server, game_id) do
-    GenServer.call(server, {:create_game, game_id})
-  end
-
-  def get_game(server, game_id) do
-    GenServer.call(server, {:get_game, game_id})
-  end
-
-  def delete_game(server, game_id) do
-    GenServer.cast(server, {:delete_game, game_id})
-  end
-
-  def move_player(server, game_id, data) do
-    GenServer.cast(server, {:move_player, game_id, data})
-  end
-
-  # call is synchronous, must send response
-  # cast is async, doesn't have to send response
-
-  def handle_call({:get_game, game_id}, _from, state) do
-    {:reply, Map.fetch(state, game_id), state}
-  end
-
-  def handle_call({:create_game, game_id}, _from, state) do
-    if Map.has_key?(state, game_id) do
-      {:noreply, state}
-    else
-      new_game_data = %{
-        left: [0, 0],
-        right: [0, 0],
-        ball: [0, 0]
-      }
-      new_state = Map.put(state, game_id, new_game_data)
-      {:reply, {:ok, game_id}, new_state}
+    new_location = case direction do
+      :up when y > 0 ->
+        {x, y - 10}
+      :down when y < (@game_height - @paddle_height) ->
+        {x, y + 10}
+      _ ->
+        {x, y}
     end
+
+    # updated_player_info = Map.put(player_info, :location, new_location)
+    # Map.put(state, player_side, updated_player_info)
+    put_in(state, [player_side, :location], new_location)
   end
 
-  def handle_cast({:delete_game, game_id}, state) do
-    {:noreply, Map.delete(state, game_id)}
+  def move_ball(state = %{ball_location: location, ball_velocity: {0, 0}}) do
+    state
+    |> Map.put(:ball_location, location)
+    |> Map.put(:ball_velocity, {@velocity, @velocity})
   end
 
-  def handle_cast({:move_player, game_id, {player_side, new_location}}, state) do
-    game_state = Map.fetch!(state, game_id)
-    |> Map.put(player_side, new_location)
-
-    {:noreply, Map.put(state, game_id, game_state)}
-
+  def move_ball(state = %{ball_location: {loc_x, loc_y}, ball_velocity: {vel_x, vel_y}}) do
+    state
+    |> Map.put(:ball_location, {loc_x + vel_x, loc_y + vel_y})
   end
+
+  # def check_collision({x, y}) do
+  # end
+
+  # def check_point({x, y}) do
+  # end
+
+  def print_to_console(state) do
+    IO.puts("=========================")
+    IO.puts("ball location: #{inspect state.ball_location}")
+    IO.puts("ball velocity: #{inspect state.ball_velocity}")
+    IO.puts("left player location: #{inspect state.left.location}")
+    IO.puts("left player moving: #{inspect state.left.moving}")
+    IO.puts("right player location: #{inspect state.right.location}")
+    IO.puts("right player moving: #{inspect state.right.moving}")
+    IO.puts("score: #{inspect state.score}")
+    state
+  end
+
 end
