@@ -3,11 +3,7 @@ defmodule Pong.GameServer do
   alias Pong.GameEngine
 
   def start_link do
-   GenServer.start_link(__MODULE__, :ok, [])
-  end
-
-  def init(:ok) do
-    {:ok, Pong.GameEngine.new_game_state}
+   GenServer.start_link(__MODULE__, Pong.GameEngine.new_game_state, [])
   end
 
   def get_state(server) do
@@ -22,20 +18,23 @@ defmodule Pong.GameServer do
     GenServer.call(server, {:advance_game})
   end
 
-  # def start_game do
-  # end
-  #
-  # def move_ball do
-  # end
-
-  # def score_point(player_side) do
-  # end
-
   # call is synchronous, must send response
   # cast is async, doesn't have to send response
 
   def handle_call({:get_state}, _from, state) do
     {:reply, {:ok, state}, state}
+  end
+
+  def handle_call({:advance_game}, _from, state) do
+    new_state = state
+    |> GameEngine.move_ball
+    |> GameEngine.move_paddle(:left)
+    |> GameEngine.move_paddle(:right)
+    # |> GameEngine.check_paddle_collisions
+    |> GameEngine.check_wall_collisions
+    |> GameEngine.print_to_console
+
+    {:reply, {:ok, new_state}, new_state}
   end
 
   def handle_cast({:move_player, player_side, direction}, state) do
@@ -49,17 +48,5 @@ defmodule Pong.GameServer do
     end
 
     {:noreply, state}
-  end
-
-  def handle_call({:advance_game}, _from, state) do
-    new_state = state
-    |> GameEngine.move_ball
-    |> GameEngine.move_paddle(:left)
-    |> GameEngine.move_paddle(:right)
-    # |> GameEngine.check_paddle_collisions
-    # |> GameEngine.check_wall_collisions
-    |> GameEngine.print_to_console
-
-    {:reply, {:ok, new_state}, new_state}
   end
 end

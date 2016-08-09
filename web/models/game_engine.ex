@@ -13,14 +13,14 @@ defmodule Pong.GameEngine do
     %{
       score: score,
       left: %{
-        location: {@paddle_distance_from_side, (@game_height / 2) - (@paddle_height / 2)},
+        location: {@paddle_distance_from_side, div(@game_height, 2) - div(@paddle_height, 2)},
         moving: :nope
       },
       right: %{
-        location: {@game_width - @paddle_distance_from_side - @paddle_width, (@game_height / 2) - (@paddle_height / 2)},
+        location: {@game_width - @paddle_distance_from_side - @paddle_width, div(@game_height, 2) - div(@paddle_height, 2)},
         moving: :nope
       },
-      ball_location: {(@game_width / 2) - (@ball_diameter / 2), (@game_height / 2) - (@ball_diameter / 2)},
+      ball_location: {div(@game_width, 2) - div(@ball_diameter, 2), div(@game_height, 2) - div(@ball_diameter, 2)},
       ball_velocity: {0, 0}
     }
   end
@@ -64,10 +64,13 @@ defmodule Pong.GameEngine do
     |> Map.put(:ball_location, {loc_x + vel_x, loc_y + vel_y})
   end
 
-  # def check_collision({x, y}) do
-  # end
+  def check_wall_collisions(state = %{ball_location: {_loc_x, loc_y}, ball_velocity: {vel_x, vel_y}}) when loc_y <= 0 or loc_y >= @game_height do
+    state
+    |> Map.put(:ball_velocity, {vel_x, -vel_y})
+  end
+  def check_wall_collisions(state), do: state
 
-  # def check_point({x, y}) do
+  # def check_paddle_collisions(state) do
   # end
 
   def print_to_console(state) do
@@ -79,7 +82,56 @@ defmodule Pong.GameEngine do
     IO.puts("right player location: #{inspect state.right.location}")
     IO.puts("right player moving: #{inspect state.right.moving}")
     IO.puts("score: #{inspect state.score}")
+
+    {leftx, lefty} = state.left.location
+    {rightx, righty} = state.right.location
+    {ballx, bally} = state.ball_location
+
+    leftx = div(leftx, 20)
+    lefty = div(lefty, 20)
+    rightx = div(rightx, 20)
+    righty = div(righty, 20)
+    ballx = div(ballx, 20)
+    bally = div(bally, 20)
+
+    Enum.each(0..div(@game_height, 20), fn(y) ->
+      Enum.each(0..div(@game_width, 20), fn(x) ->
+        cond do
+          y == 0  || y == div(@game_height, 20) ->
+            IO.write " X "
+          x == 0 ->
+            IO.write " X"
+          x == div(@game_width, 20) ->
+            IO.write "  X"
+          draw_paddle?(x, y, leftx, lefty) ->
+            IO.write "  O"
+          draw_paddle?(x, y, rightx, righty) ->
+            IO.write "  O"
+          draw_ball?(x, y, ballx, bally) ->
+            IO.write " O "
+          true ->
+            IO.write "   "
+        end
+      end)
+      IO.write "\n"
+    end)
+
     state
   end
 
+  defp draw_paddle?(x, y, paddlex, paddley) do
+    if x >= paddlex && x <= (paddlex + div(@paddle_width, 20)) && y >= paddley && y <= (paddley + div(@paddle_height, 20)) do
+      true
+    else
+      false
+    end
+  end
+
+  defp draw_ball?(x, y, ballx, bally) do
+    if x >= ballx && x <= (ballx + div(@ball_diameter, 20)) && y >= bally && y <= (bally + div(@ball_diameter, 20)) do
+      true
+    else
+      false
+    end
+  end
 end

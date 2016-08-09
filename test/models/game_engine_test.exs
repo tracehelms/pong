@@ -43,4 +43,21 @@ defmodule Pong.GameEngineTest do
     assert state.ball_location == {350, 270}
   end
 
+  test "ball should bounce off of the top and bottom walls" do
+    state = GameEngine.new_game_state
+    |> Map.put(:ball_velocity, {20, 20})
+    |> Map.put(:ball_location, {310, 480})
+
+    state = GameEngine.check_wall_collisions(state)
+    assert state.ball_location == {310, 480}
+    assert state.ball_velocity == {20, -20}
+
+    state = state
+    |> Map.put(:ball_location, {310, 0})
+    |> GameEngine.check_wall_collisions
+
+    assert state.ball_location == {310, 0}
+    assert state.ball_velocity == {20, 20}
+  end
+
 end
