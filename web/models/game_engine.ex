@@ -5,7 +5,7 @@ defmodule Pong.GameEngine do
   @game_height 480
   @paddle_width 12
   @paddle_height 100
-  @paddle_velocity 10
+  @paddle_velocity 20
   @paddle_distance_from_side 20
   @ball_diameter 20
 
@@ -25,31 +25,19 @@ defmodule Pong.GameEngine do
     }
   end
 
-  # TODO
-  #
-  # change this to receive and return a game state
-  # so basically this happens:
-  # when player presses up or down key, that gets sent to the server
-  # and we store in state whether they are moving up or down
-  # when key is releases, same thing
-  # then, as a part of the game tick, we move the paddles up or down
-  # based on what direction we have stored in state
-  #
   def move_paddle(state, player_side) do
     direction = Map.get(state, player_side).moving
     {x, y} = Map.get(state, player_side).location
 
     new_location = case direction do
       :up when y > 0 ->
-        {x, y - 10}
+        {x, y - @paddle_velocity}
       :down when y < (@game_height - @paddle_height) ->
-        {x, y + 10}
+        {x, y + @paddle_velocity}
       _ ->
         {x, y}
     end
 
-    # updated_player_info = Map.put(player_info, :location, new_location)
-    # Map.put(state, player_side, updated_player_info)
     put_in(state, [player_side, :location], new_location)
   end
 
@@ -69,9 +57,6 @@ defmodule Pong.GameEngine do
     |> Map.put(:ball_velocity, {vel_x, -vel_y})
   end
   def check_wall_collisions(state), do: state
-
-  # def check_paddle_collisions(state) do
-  # end
 
   def print_to_console(state) do
     IO.puts("=========================")

@@ -2,8 +2,12 @@ defmodule Pong.GameServer do
   use GenServer
   alias Pong.GameEngine
 
+  ####################################################
+  # Interface
+  ####################################################
+
   def start_link do
-   GenServer.start_link(__MODULE__, Pong.GameEngine.new_game_state, [])
+    GenServer.start_link(__MODULE__, Pong.GameEngine.new_game_state, [])
   end
 
   def get_state(server) do
@@ -18,25 +22,45 @@ defmodule Pong.GameServer do
     GenServer.call(server, {:advance_game})
   end
 
-  # call is synchronous, must send response
-  # cast is async, doesn't have to send response
+  def auto_advance(server) do
+    {:ok, timer_pid} = :timer.apply_interval(:timer.seconds(2), __MODULE__, :advance_game, [server])
+    IO.puts "Automatically running timer"
+    IO.puts "To stop, run `:timer.cancel(timer_pid)`"
 
+    timer_pid
+  end
+
+  ####################################################
+  # Server implementation
+  ####################################################
+
+  # TODO delete
   def handle_call({:get_state}, _from, state) do
     {:reply, {:ok, state}, state}
   end
 
+  # TODO delete
   def handle_call({:advance_game}, _from, state) do
     new_state = state
     |> GameEngine.move_ball
     |> GameEngine.move_paddle(:left)
     |> GameEngine.move_paddle(:right)
-    # |> GameEngine.check_paddle_collisions
     |> GameEngine.check_wall_collisions
     |> GameEngine.print_to_console
+
+    # EXTRA CREDIT
+    # Implement the following checks in the GameEngine
+    #
+    # Check for paddle collisions
+    # Check if a point was scored
+
+    # HARD MODE
+    # Delete the GameEngine and rewrite it yourself
 
     {:reply, {:ok, new_state}, new_state}
   end
 
+  # TODO delete
   def handle_cast({:move_player, player_side, direction}, state) do
     state = case direction do
       :up ->

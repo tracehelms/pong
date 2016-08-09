@@ -8,10 +8,10 @@ defmodule Pong.GameEngineTest do
     assert GameEngine.move_paddle(state, :left).left.location == {20, 190}
 
     state = put_in(state, [:left, :moving], :down)
-    assert GameEngine.move_paddle(state, :left).left.location == {20, 200}
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 210}
 
     state = put_in(state, [:left, :moving], :up)
-    assert GameEngine.move_paddle(state, :left).left.location == {20, 180}
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 170}
 
     state = put_in(state, [:left, :location], {20, 0})
     state = put_in(state, [:left, :moving], :up)
@@ -19,7 +19,7 @@ defmodule Pong.GameEngineTest do
 
     state = put_in(state, [:left, :location], {20, 370})
     state = put_in(state, [:left, :moving], :down)
-    assert GameEngine.move_paddle(state, :left).left.location == {20, 380}
+    assert GameEngine.move_paddle(state, :left).left.location == {20, 390}
 
     state = put_in(state, [:left, :location], {20, 380})
     state = put_in(state, [:left, :moving], :down)
