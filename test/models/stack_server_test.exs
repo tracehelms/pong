@@ -7,7 +7,7 @@ defmodule Pong.StackServerTest do
     {:ok, server: server}
   end
 
-  # @tag :skip
+  @tag :skip
   test "can add an item to list", %{server: server} do
     GenServer.cast(server, {:add, :hello})
 
@@ -15,7 +15,7 @@ defmodule Pong.StackServerTest do
     assert list == [:hello]
   end
 
-  # @tag :skip
+  @tag :skip
   test "can add two items to list", %{server: server} do
     GenServer.cast(server, {:add, :hello})
     GenServer.cast(server, {:add, :wat})
@@ -24,7 +24,7 @@ defmodule Pong.StackServerTest do
     assert list == [:wat, :hello]
   end
 
-  # @tag :skip
+  @tag :skip
   test "can pop an item in the stack", %{server: server} do
     GenServer.cast(server, {:add, :hello})
     GenServer.cast(server, {:add, :wat})
@@ -35,7 +35,7 @@ defmodule Pong.StackServerTest do
     assert list == [:hello]
   end
 
-  # @tag :skip
+  @tag :skip
   test "interface can add", %{server: server} do
     StackServer.add(server, :hello)
     StackServer.add(server, :wat)
@@ -44,7 +44,7 @@ defmodule Pong.StackServerTest do
     assert list == [:wat, :hello]
   end
 
-  # @tag :skip
+  @tag :skip
   test "interface can pop", %{server: server} do
     StackServer.add(server, :hello)
     StackServer.add(server, :wat)

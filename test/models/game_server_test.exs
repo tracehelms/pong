@@ -7,7 +7,7 @@ defmodule Pong.GameServerTest do
     {:ok, server: server}
   end
 
-  # @tag :skip
+  @tag :skip
   test "gets a game's state", %{server: server} do
     {:ok, game_state} = GameServer.get_state(server)
     assert game_state == %{
@@ -25,7 +25,7 @@ defmodule Pong.GameServerTest do
     }
   end
 
-  # @tag :skip
+  @tag :skip
   test "should move a players paddle", %{server: server} do
     GameServer.move_player(server, :left, :down)
     {:ok, game_state} = GameServer.get_state(server)
@@ -43,7 +43,7 @@ defmodule Pong.GameServerTest do
     assert game_state.left.moving == :nope
   end
 
-  # @tag :skip
+  @tag :skip
   test "should advance the game", %{server: server} do
     GameServer.move_player(server, :left, :down)
     GameServer.move_player(server, :right, :down)
