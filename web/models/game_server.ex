@@ -34,12 +34,10 @@ defmodule Pong.GameServer do
   # Server implementation
   ####################################################
 
-  # TODO delete
   def handle_call({:get_state}, _from, state) do
     {:reply, {:ok, state}, state}
   end
 
-  # TODO delete
   def handle_call({:advance_game}, _from, state) do
     new_state = state
     |> GameEngine.move_ball
@@ -48,19 +46,15 @@ defmodule Pong.GameServer do
     |> GameEngine.check_wall_collisions
     |> GameEngine.print_to_console
 
-    # EXTRA CREDIT
+    # TODO
     # Implement the following checks in the GameEngine
     #
     # Check for paddle collisions
     # Check if a point was scored
 
-    # HARD MODE
-    # Delete the GameEngine and rewrite it yourself
-
     {:reply, {:ok, new_state}, new_state}
   end
 
-  # TODO delete
   def handle_cast({:move_player, player_side, direction}, state) do
     state = case direction do
       :up ->
